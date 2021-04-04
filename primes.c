@@ -41,7 +41,7 @@ void* statsworker(void* p)
 			return NULL;
 		}
 
-		fprintf(stderr, "Found %lu primes, %f\% done\n", primes_size, primes_upto / (double)limit * 100);
+		fprintf(stderr, "Found %lu primes, %f%% done\n", primes_size + 1, primes_upto / (double)limit * 100);
 
 		pthread_mutex_unlock(&primes_lock);
 	}
@@ -61,7 +61,7 @@ void* worker(void* p)
 			
 nextprime:
 
-		// Get the next number to check if prime
+		// get the next number to check if prime
 		i = primes_upto;
 		primes_upto += 2;
 		*worker_upto = primes_size;
@@ -156,6 +156,7 @@ int main(int cargs, const char** vargs)
 	int* ids = (int*)malloc(sizeof(int) * cpus);
 	struct timeval start, end;
 
+	// find all the primes and start/wait for all the workers
 	pthread_create(&thread_stats, NULL, statsworker, NULL);
 	gettimeofday(&start, NULL);
 	
@@ -174,10 +175,12 @@ int main(int cargs, const char** vargs)
 	gettimeofday(&end, NULL);
 	pthread_join(thread_stats, NULL);
 
-	fprintf(stderr, "Found %lu primes in %f seconds\n", primes_size, (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0);
+	// final primes stats
+	fprintf(stderr, "Found %lu primes in %f seconds\n", primes_size + 1, (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0);
 
 	qsort(primes, primes_size, sizeof(num_t), num_compare);
 
+	// display all the primes
 	printf("2\n");
 
 	for(num_t i = 0; i < primes_size; i++)
